@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Controller {
 
-	//http://localhost:8100/currency-conversion/from/USD/to/INR/quantity/10
-	
 	@Autowired
 	CurrencyExchangeProxy proxy;
 	
