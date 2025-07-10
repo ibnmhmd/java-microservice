@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping(value = {"api/currency-exchange"})
 public class Controller {
 	
 	@Autowired
@@ -17,7 +19,7 @@ public class Controller {
 	@Autowired
 	Environment environment;
 	
-	@GetMapping("/api/currency-exchange/{from}/to/{to}")
+	@GetMapping("{from}/to/{to}")
 	public CurrencyExchange getExchange(@PathVariable String from, @PathVariable String to) { 
 		CurrencyExchange currency = this.currencyRepo.findByFromAndTo(from, to);
 		
@@ -27,5 +29,5 @@ public class Controller {
 		currency.setEnvironment("SERVER-"+this.environment.getProperty("local.server.port"));
 		return currency;
 	}
-
+	
 }
