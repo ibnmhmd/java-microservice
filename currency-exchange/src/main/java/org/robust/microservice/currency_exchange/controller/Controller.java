@@ -12,22 +12,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = {"api/currency-exchange"})
 public class Controller {
-	
+
 	@Autowired
 	private CurrencyExchangeRepo currencyRepo;
-	
+
 	@Autowired
 	Environment environment;
-	
+
 	@GetMapping("{from}/to/{to}")
-	public CurrencyExchange getExchange(@PathVariable String from, @PathVariable String to) { 
+	public CurrencyExchange getExchange(@PathVariable String from, @PathVariable String to) {
 		CurrencyExchange currency = this.currencyRepo.findByFromAndTo(from, to);
-		
+
 		if(currency == null) {
 			throw new RuntimeException("No currency was found");
 		}
 		currency.setEnvironment("SERVER-"+this.environment.getProperty("local.server.port"));
 		return currency;
 	}
-	
+
 }

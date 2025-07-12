@@ -1,0 +1,82 @@
+
+services:
+  mysql-server:
+    working_dir: /var/lib/mysql
+    container_name: mysql-server
+    image: mysql:oraclelinux9
+    ports:
+      - "3306:3306"
+    restart: always
+    mem_limit: 500m
+    environment:
+      - MYSQL_DATABASE=currency_exchange
+      - MYSQL_USER=currency_user
+      - MYSQL_PASSWORD=currency_password
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - currency-network
+  currency-exchange:
+    image: ibnumahamat/currency-exchange:0.0.1-SNAPSHOT
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    mem_limit: 700m
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=currency-exchange
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-server:3306/currency_exchange
+      - SPRING_DATASOURCE_USERNAME=currency_user
+      - SPRING_DATASOURCE_PASSWORD=currency_password
+      - ZIPKIN_BASE_URL=http://zipkin-server:9411
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin-server:9411/api/v2/spans
+
+    depends_on:
+      - zipkin-server
+      - eureka-server
+      - mysql-server
+    networks:
+      - currency-network
+    # command: >
+    #     java -jar currency-exchange:0.0.1-SNAPSHOT.jar --eureka.client.serviceUrl.defaultZone=http://eureka-server:8761/eureka/
+
+  eureka-server:
+    image: ibnumahamat/eureka-server:0.0.1-SNAPSHOT
+    ports:
+      - "8761:8761"
+    restart: unless-stopped
+    mem_limit: 1000m
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_ENABLED=false
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin-server:9411/api/v2/spans
+    networks:
+      - currency-network
+    
+  zipkin-server:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    restart: unless-stopped
+    mem_limit: 500m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - currency-network
+
+networks:
+  currency-network:
+    driver: bridge
+volumes:
+  mysql_data:
+    driver: local
+  currency_exchange_data:
+    driver: local
